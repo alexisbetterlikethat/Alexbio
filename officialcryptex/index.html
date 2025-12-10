@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptex</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: rgba(255, 255, 255, 0.04);
+            --neon-blue: #00eaff;
+            --neon-light: #00ffff;
+            --gradient-start: #0077ff;
+            --gradient-end: #00eaff;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: var(--bg-color);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            perspective: 1000px;
+            user-select: none;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(to right, rgba(0, 234, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 234, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: move-background 60s linear infinite;
+            z-index: -2;
+            opacity: 0.3;
+        }
+        @keyframes move-background { from { background-position: 0 0; } to { background-position: 50px 50px; } }
+        .background-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.6;
+            animation: float-bg 20s infinite linear alternate;
+        }
+        .orb-1 { width: 300px; height: 300px; background: var(--neon-blue); top: 10%; left: 20%; }
+        .orb-2 { width: 450px; height: 450px; background: var(--gradient-start); bottom: 5%; right: 15%; animation-delay: -10s; }
+        @keyframes float-bg {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(60vw, 40vh) scale(1.1); }
+            100% { transform: translate(-30vw, -10vh) scale(0.9); }
+        }
+        .card-container {
+            padding: 40px;
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 234, 255, 0.15);
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 234, 255, 0.1);
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease;
+            position: relative;
+        }
+        #profile-card { width: 380px; opacity: 1; transition: opacity 0.5s ease; }
+        #contact-card {
+            width: 550px;
+            max-width: 90vw;
+            height: 300px;
+            display: none;
+            opacity: 0;
+            padding: 30px;
+            padding-top: 50px;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            transition: opacity 0.5s ease;
+        }
+        .back-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            padding: 5px 10px;
+            background: rgba(0, 234, 255, 0.1);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        .back-btn:hover { background: var(--neon-blue); color: var(--bg-color); box-shadow: 0 0 10px var(--neon-blue); }
+        #contact-card h2 {
+            color: var(--neon-light);
+            text-shadow: 0 0 10px var(--neon-light);
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            transform: translateZ(20px);
+        }
+        .contact-buttons-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            transform: translateZ(10px);
+        }
+        .contact-btn { flex-basis: calc(33% - 20px); padding: 15px 10px; font-size: 0.9rem; }
+        .pfp-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px auto;
+            transform: translateZ(40px);
+        }
+        .pfp {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: #222;
+        }
+        .pfp-wrapper::after {
+            content: '';
+            position: absolute;
+            inset: -5px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, var(--neon-blue), var(--gradient-start), var(--neon-blue));
+            z-index: -1;
+            filter: blur(10px);
+            opacity: 0.7;
+            animation: spin 4s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .card-container:hover .pfp { transform: scale(1.05); border-color: var(--neon-light); box-shadow: 0 0 20px rgba(0, 234, 255, 0.5); }
+        h1 { color: var(--neon-blue); font-size: 1.8rem; margin-bottom: 5px; letter-spacing: 1px; text-transform: uppercase; transform: translateZ(30px); text-shadow: 0 0 10px rgba(0, 234, 255, 0.5); }
+        p.role { color: var(--text-main); font-size: 0.9rem; font-weight: 600; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; transform: translateZ(25px); height: 1.2rem; }
+        p.bio { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 30px; transform: translateZ(20px); }
+        .links-wrapper { display: flex; justify-content: center; gap: 15px; transform: translateZ(35px); }
+        .btn {
+            text-decoration: none;
+            color: var(--text-main);
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(0, 234, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 234, 255, 0.3), transparent);
+            transition: 0.5s;
+        }
+        .btn:hover::before { left: 100%; }
+        .btn:hover { background: var(--neon-blue); color: #000; border-color: var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue); }
+        .btn.contact-btn { border-radius: 10px; padding: 15px; }
+        .btn.contact-btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+    <div class="background-orb orb-1"></div>
+    <div class="background-orb orb-2"></div>
+
+    <div class="card-container" id="profile-card">
+        <div class="pfp-wrapper">
+            <img src="../catpfp2.jpg" alt="Profile Picture" class="pfp">
+        </div>
+        <h1>Cryptex</h1>
+        <p class="role" id="typing-text">Roblox Scripter / Editor</p>
+        <p class="bio">Roblox Scripter and editor.</p>
+        <div class="links-wrapper">
+            <a href="https://www.youtube.com/@CryptexEditz/shorts" class="btn" target="_blank" rel="noopener noreferrer">YouTube</a>
+            <button class="btn" id="contact-switch-btn">Contact</button>
+        </div>
+    </div>
+
+    <div class="card-container" id="contact-card">
+        <button class="back-btn" onclick="switchToProfileCard()">&#8592;</button>
+        <h2>LET'S CONNECT!</h2>
+        <div class="contact-buttons-wrapper">
+            <button class="btn contact-btn" onclick="openDiscordServer()">Discord Server</button>
+            <button class="btn contact-btn" onclick="openDiscordDM()">DM on Discord</button>
+            <button class="btn contact-btn" onclick="copyToClipboard()">Copy Discord Tag</button>
+            <button class="btn contact-btn" onclick="openYouTubeComments()">YouTube Shorts</button>
+        </div>
+    </div>
+
+    <script>
+        const DISCORD_INVITE = 'https://discord.gg/UWHQBWRKFC';
+        const DISCORD_ID_URL = 'https://discord.com/users/1255653644381061120';
+        const YOUTUBE_CHANNEL = 'https://www.youtube.com/@CryptexEditz/shorts';
+        const DISCORD_TAG = 'cryptex';
+        const FRIEND_ME_MESSAGE = `Add ${DISCORD_TAG} on Discord to chat!`;
+        const TYPING_TEXT = "Roblox Scripter / Editor";
+
+        const profileCard = document.getElementById('profile-card');
+        const contactCard = document.getElementById('contact-card');
+        const body = document.querySelector('body');
+        let targetX = 0, targetY = 0, currentX = 0, currentY = 0;
+        const smoothness = 0.1;
+
+        function updateTilt() {
+            currentX += (targetX - currentX) * smoothness;
+            currentY += (targetY - currentY) * smoothness;
+            const transformValue = `rotateY(${currentX}deg) rotateX(${-currentY}deg)`;
+            if (profileCard.style.display !== 'none') profileCard.style.transform = transformValue;
+            else if (contactCard.style.display !== 'none') contactCard.style.transform = transformValue;
+            requestAnimationFrame(updateTilt);
+        }
+        body.addEventListener('mousemove', (e) => {
+            targetX = (e.pageX - window.innerWidth / 2) / 25;
+            targetY = (e.pageY - window.innerHeight / 2) / 25;
+        });
+        body.addEventListener('mouseleave', () => { targetX = 0; targetY = 0; });
+        updateTilt();
+
+        document.getElementById('contact-switch-btn').addEventListener('click', () => {
+            profileCard.style.opacity = '0';
+            setTimeout(() => {
+                profileCard.style.display = 'none';
+                contactCard.style.display = 'flex';
+                contactCard.style.transform = profileCard.style.transform;
+                setTimeout(() => { contactCard.style.opacity = '1'; }, 10);
+            }, 500);
+        });
+
+        function switchToProfileCard() {
+            contactCard.style.opacity = '0';
+            setTimeout(() => {
+                contactCard.style.display = 'none';
+                profileCard.style.display = 'block';
+                profileCard.style.transform = contactCard.style.transform;
+                setTimeout(() => { profileCard.style.opacity = '1'; }, 10);
+            }, 500);
+        }
+
+        function openDiscordServer() { window.open(DISCORD_INVITE, '_blank'); }
+        function copyToClipboard() { navigator.clipboard.writeText(DISCORD_TAG).then(() => { alert(FRIEND_ME_MESSAGE); }); }
+        function openDiscordDM() { window.open(DISCORD_ID_URL, '_blank'); }
+        function openYouTubeComments() { window.open(YOUTUBE_CHANNEL, '_blank'); }
+
+        const textElement = document.getElementById('typing-text');
+        let index = 0; let isDeleting = false;
+        function typeWriter() {
+            const speed = isDeleting ? 50 : 100;
+            const fullText = TYPING_TEXT;
+            if (!isDeleting && index <= fullText.length) { textElement.innerHTML = fullText.substring(0, index); index++; }
+            if (isDeleting && index >= 0) { textElement.innerHTML = fullText.substring(0, index); index--; }
+            if (index === fullText.length + 1) { isDeleting = true; setTimeout(typeWriter, 2000); return; }
+            if (index === 0 && isDeleting) { isDeleting = false; }
+            setTimeout(typeWriter, speed);
+        }
+        typeWriter();
+    </script>
+</body>
+</html>
