@@ -149,9 +149,19 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .card-container:hover .pfp { transform: scale(1.05); border-color: var(--neon-light); box-shadow: 0 0 20px rgba(0, 234, 255, 0.5); }
         h1 { color: var(--neon-blue); font-size: 1.8rem; margin-bottom: 5px; letter-spacing: 1px; text-transform: uppercase; transform: translateZ(30px); text-shadow: 0 0 10px rgba(0, 234, 255, 0.5); }
-        p.role { color: var(--text-main); font-size: 0.9rem; font-weight: 600; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; transform: translateZ(25px); height: 1.2rem; }
+        p.role { color: var(--text-main); font-size: 0.95rem; font-weight: 600; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; transform: translateZ(25px); }
         p.bio { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 30px; transform: translateZ(20px); }
         .links-wrapper { display: flex; justify-content: center; gap: 15px; transform: translateZ(35px); }
+        .sound-corner {
+            position: absolute !important;
+            top: 14px;
+            right: 14px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            z-index: 2;
+        }
+        .sound-corner::before { display: none; }
+        .sound-corner:hover { background: rgba(255, 255, 255, 0.08); color: var(--text-main); box-shadow: 0 0 14px rgba(0, 234, 255, 0.35); }
         .btn {
             text-decoration: none;
             color: var(--text-main);
@@ -188,6 +198,7 @@
     <div class="background-orb orb-2"></div>
 
     <div class="card-container" id="profile-card">
+        <button class="btn sound-corner" id="sound-toggle">Sound: Off</button>
         <div class="pfp-wrapper">
             <img src="../catpfp2.jpg" alt="Profile Picture" class="pfp">
         </div>
@@ -207,9 +218,13 @@
             <button class="btn contact-btn" onclick="openDiscordServer()">Discord Server</button>
             <button class="btn contact-btn" onclick="openDiscordDM()">DM on Discord</button>
             <button class="btn contact-btn" onclick="copyToClipboard()">Copy Discord Tag</button>
-            <button class="btn contact-btn" onclick="openYouTubeComments()">YouTube Shorts</button>
+            <button class="btn contact-btn" onclick="openYouTubeComments()">YouTube </button>
         </div>
     </div>
+
+    <audio id="bg-audio" loop preload="auto" autoplay playsinline>
+        <source src="timeless.m4a" type="audio/mp4" />
+    </audio>
 
     <script>
         const DISCORD_INVITE = 'https://discord.gg/UWHQBWRKFC';
@@ -218,6 +233,9 @@
         const DISCORD_TAG = 'cryptex';
         const FRIEND_ME_MESSAGE = `Add ${DISCORD_TAG} on Discord to chat!`;
         const TYPING_TEXT = "Roblox Scripter / Editor";
+        const audioEl = document.getElementById('bg-audio');
+        const soundBtn = document.getElementById('sound-toggle');
+        let soundOn = false;
 
         const profileCard = document.getElementById('profile-card');
         const contactCard = document.getElementById('contact-card');
@@ -239,6 +257,9 @@
         });
         body.addEventListener('mouseleave', () => { targetX = 0; targetY = 0; });
         updateTilt();
+
+        // Try to start audio on load; if blocked, we fall back to first user interaction
+        attemptAutoplay();
 
         document.getElementById('contact-switch-btn').addEventListener('click', () => {
             profileCard.style.opacity = '0';
@@ -264,6 +285,42 @@
         function copyToClipboard() { navigator.clipboard.writeText(DISCORD_TAG).then(() => { alert(FRIEND_ME_MESSAGE); }); }
         function openDiscordDM() { window.open(DISCORD_ID_URL, '_blank'); }
         function openYouTubeComments() { window.open(YOUTUBE_CHANNEL, '_blank'); }
+
+        async function startAudio() {
+            try {
+                audioEl.volume = 0.4;
+                await audioEl.play();
+                soundOn = true;
+                soundBtn.textContent = 'Sound: On';
+                return true;
+            } catch (err) {
+                console.error('Audio start failed', err);
+                soundOn = false;
+                soundBtn.textContent = 'Sound: Off';
+                return false;
+            }
+        }
+
+        function stopAudio() {
+            audioEl.pause();
+            soundOn = false;
+            soundBtn.textContent = 'Sound: Off';
+        }
+
+        soundBtn.addEventListener('click', async () => {
+            if (!soundOn) {
+                await startAudio();
+            } else {
+                stopAudio();
+            }
+        });
+
+        async function attemptAutoplay() {
+            const ok = await startAudio();
+            if (ok) return;
+            const resumeOnInteract = async () => { await startAudio(); };
+            ['pointerdown', 'touchstart', 'keydown'].forEach(evt => document.addEventListener(evt, resumeOnInteract, { once: true }));
+        }
 
         const textElement = document.getElementById('typing-text');
         let index = 0; let isDeleting = false;
