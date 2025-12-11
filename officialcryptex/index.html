@@ -237,6 +237,11 @@
         const soundBtn = document.getElementById('sound-toggle');
         let soundOn = false;
 
+        // Force a fully qualified audio URL to avoid relative path issues after deploy
+        const AUDIO_SRC = new URL('timeless.m4a', window.location.href).toString();
+        audioEl.src = AUDIO_SRC;
+        audioEl.load();
+
         const profileCard = document.getElementById('profile-card');
         const contactCard = document.getElementById('contact-card');
         const body = document.querySelector('body');
@@ -292,11 +297,13 @@
                 await audioEl.play();
                 soundOn = true;
                 soundBtn.textContent = 'Sound: On';
+                soundBtn.disabled = false;
                 return true;
             } catch (err) {
                 console.error('Audio start failed', err);
                 soundOn = false;
-                soundBtn.textContent = 'Sound: Off';
+                soundBtn.textContent = 'Sound: Retry';
+                soundBtn.disabled = false;
                 return false;
             }
         }
@@ -321,6 +328,12 @@
             const resumeOnInteract = async () => { await startAudio(); };
             ['pointerdown', 'touchstart', 'keydown'].forEach(evt => document.addEventListener(evt, resumeOnInteract, { once: true }));
         }
+
+        audioEl.addEventListener('error', () => {
+            soundOn = false;
+            soundBtn.textContent = 'Sound: Load failed';
+            soundBtn.disabled = false;
+        });
 
         const textElement = document.getElementById('typing-text');
         let index = 0; let isDeleting = false;
