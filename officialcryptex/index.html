@@ -222,8 +222,8 @@
         </div>
     </div>
 
-    <audio id="bg-audio" loop preload="auto" autoplay playsinline>
-        <source src="timeless.m4a" type="audio/mp4" />
+    <audio id="bg-audio" loop preload="auto" playsinline autoplay>
+        <source src="timeless.m4a" type="audio/m4a" />
     </audio>
 
     <script>
@@ -241,6 +241,7 @@
         const AUDIO_SRC = new URL('timeless.m4a', window.location.href).toString();
         audioEl.src = AUDIO_SRC;
         audioEl.load();
+        soundBtn.textContent = 'Sound: Loading…';
 
         const profileCard = document.getElementById('profile-card');
         const contactCard = document.getElementById('contact-card');
@@ -262,9 +263,6 @@
         });
         body.addEventListener('mouseleave', () => { targetX = 0; targetY = 0; });
         updateTilt();
-
-        // Try to start audio on load; if blocked, we fall back to first user interaction
-        attemptAutoplay();
 
         document.getElementById('contact-switch-btn').addEventListener('click', () => {
             profileCard.style.opacity = '0';
@@ -302,7 +300,7 @@
             } catch (err) {
                 console.error('Audio start failed', err);
                 soundOn = false;
-                soundBtn.textContent = 'Sound: Retry';
+                soundBtn.textContent = 'Sound: Tap to play';
                 soundBtn.disabled = false;
                 return false;
             }
@@ -322,16 +320,18 @@
             }
         });
 
-        async function attemptAutoplay() {
-            const ok = await startAudio();
-            if (ok) return;
-            const resumeOnInteract = async () => { await startAudio(); };
-            ['pointerdown', 'touchstart', 'keydown'].forEach(evt => document.addEventListener(evt, resumeOnInteract, { once: true }));
-        }
+        ['pointerdown', 'touchstart', 'keydown'].forEach(evt => {
+            document.addEventListener(evt, async () => { if (!soundOn) await startAudio(); }, { once: true });
+        });
+
+        window.addEventListener('load', () => {
+            // Attempt autoplay on load; if blocked, button text already says tap to play
+            startAudio();
+        });
 
         audioEl.addEventListener('error', () => {
             soundOn = false;
-            soundBtn.textContent = 'Sound: Load failed';
+            soundBtn.textContent = 'Sound: Load failed (check file path)';
             soundBtn.disabled = false;
         });
 
