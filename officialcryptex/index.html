@@ -191,14 +191,43 @@
         .btn:hover { background: var(--neon-blue); color: #000; border-color: var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue); }
         .btn.contact-btn { border-radius: 10px; padding: 15px; }
         .btn.contact-btn:active { transform: scale(0.95); }
+        .entry-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(18px) saturate(120%);
+            -webkit-backdrop-filter: blur(18px) saturate(120%);
+            transition: opacity 0.35s ease;
+        }
+        .entry-box {
+            padding: 22px 34px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(0, 234, 255, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35), 0 0 30px rgba(0, 234, 255, 0.15);
+            color: #fff;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-align: center;
+            user-select: none;
+        }
+        .entry-box span { font-weight: 700; color: var(--neon-blue); }
     </style>
 </head>
 <body>
+    <div class="entry-overlay" id="entry-overlay">
+        <div class="entry-box">Click to enter  <span></span></div>
+    </div>
     <div class="background-orb orb-1"></div>
     <div class="background-orb orb-2"></div>
 
     <div class="card-container" id="profile-card">
-        <button class="btn sound-corner" id="sound-toggle">Sound: On</button>
+        <button class="btn sound-corner" id="sound-toggle">Sound: Off</button>
         <div class="pfp-wrapper">
             <img src="../catpfp2.jpg" alt="Profile Picture" class="pfp">
         </div>
@@ -235,13 +264,14 @@
         const TYPING_TEXT = "Roblox Scripter / Editor";
         const audioEl = document.getElementById('bg-audio');
         const soundBtn = document.getElementById('sound-toggle');
+        const entryOverlay = document.getElementById('entry-overlay');
         let soundOn = false;
 
         // Force a fully qualified audio URL to the file inside /officialcryptex
         const AUDIO_SRC = new URL('/officialcryptex/timeless.m4a', window.location.origin).toString();
         audioEl.src = AUDIO_SRC;
         audioEl.load();
-        soundBtn.textContent = 'Sound: On';
+        soundBtn.textContent = 'Sound: Off';
         console.log('Audio src resolved to', AUDIO_SRC);
 
         const profileCard = document.getElementById('profile-card');
@@ -295,10 +325,12 @@
                 audioEl.volume = 0.4;
                 await audioEl.play();
                 soundOn = true;
+                soundBtn.textContent = 'Sound: On';
                 return true;
             } catch (err) {
                 console.error('Audio start failed', err);
                 soundOn = false;
+                soundBtn.textContent = 'Sound: Off';
                 return false;
             }
         }
@@ -306,6 +338,7 @@
         function stopAudio() {
             audioEl.pause();
             soundOn = false;
+            soundBtn.textContent = 'Sound: Off';
         }
 
         soundBtn.addEventListener('click', async () => {
@@ -316,9 +349,13 @@
             }
         });
 
-        window.addEventListener('load', () => {
+        function enterSite() {
+            entryOverlay.style.opacity = '0';
+            setTimeout(() => { entryOverlay.style.display = 'none'; }, 350);
             startAudio();
-        });
+        }
+
+        entryOverlay.addEventListener('click', enterSite);
 
         audioEl.addEventListener('error', () => {
             soundOn = false;
