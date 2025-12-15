@@ -219,31 +219,31 @@
         }
         
         /* =========================================
-           5. NEW CURSOR TRAIL STYLES
+           5. NEW CURSOR TRAIL STYLES (ADJUSTED)
            ========================================= */
         #cursor-trail-container {
             position: fixed;
             top: 0;
             left: 0;
             pointer-events: none;
-            z-index: 10000; /* Must be on top */
-            mix-blend-mode: screen; /* Lightens the background */
+            z-index: 10000;
+            mix-blend-mode: screen;
         }
 
         .trail-element {
             position: absolute;
-            width: 8px; /* Starting size */
-            height: 8px; /* Starting size */
+            width: 6px; /* Decreased size */
+            height: 6px; /* Decreased size */
             background-color: var(--color-primary);
             border-radius: 50%;
             opacity: 0;
-            transform: translate(-50%, -50%); /* Center the element on the cursor position */
-            box-shadow: 0 0 5px var(--color-primary), 0 0 10px var(--color-secondary);
-            transition: all 0.3s linear, opacity 0.3s ease-out; /* Smooth transition for visual lag/trail */
+            /* Remove fixed CSS transition to use JavaScript smoothing for less lag */
+            transform: translate(-50%, -50%); /* Center the element on the position */
+            box-shadow: 0 0 3px var(--color-primary), 0 0 6px var(--color-secondary);
         }
-        /* Color variation for the trail (optional but cool) */
+        /* Color variation for the trail */
         .trail-element:nth-child(even) { background-color: var(--color-secondary); }
-        .trail-element:nth-child(3n) { transform: translate(-50%, -50%) scale(0.7); } /* Size variation */
+        .trail-element:nth-child(3n) { transform: translate(-50%, -50%) scale(0.6); } /* Size variation */
 
 
         /* Animations */
@@ -357,7 +357,8 @@
         let stars = [];
         const numStars = 500;
         const speedBase = 2;
-        
+        let starAnimationId = null; // Store animation ID
+
         function resize() {
             width = window.innerWidth;
             height = window.innerHeight;
@@ -396,12 +397,23 @@
         }
 
         for (let i = 0; i < numStars; i++) stars.push(new Star());
+        
         function animateStars() {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+            // Check visibility state to prevent black screen on minimize/unfocus
+            if (document.hidden) {
+                // If minimized/hidden, clear with higher opacity to prevent full fade, 
+                // but keep the animation running (browsers might pause this anyway)
+                ctx.fillStyle = "rgba(0, 0, 0, 0.1)"; 
+            } else {
+                // Normal draw decay
+                ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+            }
             ctx.fillRect(0, 0, width, height);
             stars.forEach(star => { star.update(); star.draw(); });
-            requestAnimationFrame(animateStars);
+            starAnimationId = requestAnimationFrame(animateStars);
         }
+
+        // Start animation
         animateStars();
 
         /* =========================================
@@ -574,38 +586,45 @@
 
 
         /* =========================================
-           4. NEW CURSOR TRAIL LOGIC
+           4. NEW CURSOR TRAIL LOGIC (SMOOTHED)
            ========================================= */
-        const trailElements = document.querySelectorAll('.trail-element');
-        let mouseX = 0, mouseY = 0;
+        const trailElements = Array.from(document.querySelectorAll('.trail-element'));
         
-        // 1. Initial position setup and tracking
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
+        // Use an array of objects to store the actual position for smoothing
+        const trailPositions = trailElements.map(() => ({ x: 0, y: 0, targetX: 0, targetY: 0 }));
+        const smoothingFactor = 0.15; // Lower number means more drag/lag, higher means tighter trail
 
-            // Set the first element immediately to the cursor position
+        // 1. Mouse movement updates the target position
+        document.addEventListener('mousemove', (e) => {
+            trailPositions[0].targetX = e.clientX;
+            trailPositions[0].targetY = e.clientY;
+            
+            // Set the first element's current position to the target for instant movement
+            trailPositions[0].x = e.clientX;
+            trailPositions[0].y = e.clientY;
             trailElements[0].style.opacity = '1';
-            trailElements[0].style.left = mouseX + 'px';
-            trailElements[0].style.top = mouseY + 'px';
         });
 
-        // 2. Animation loop for the trailing effect
+        // 2. Animation loop for the trailing effect using smoothing (Lerp)
         function animateTrail() {
+            // Update position of the first element (instant to cursor)
+            trailElements[0].style.left = trailPositions[0].x + 'px';
+            trailElements[0].style.top = trailPositions[0].y + 'px';
+
             // Loop through trail elements starting from the second one (index 1)
             for (let i = 1; i < trailElements.length; i++) {
-                const current = trailElements[i];
-                const prev = trailElements[i - 1];
-                
-                // Get previous element's position
-                const prevRect = prev.getBoundingClientRect();
-                const prevX = prevRect.left + prevRect.width / 2;
-                const prevY = prevRect.top + prevRect.height / 2;
-                
-                // Apply a delayed movement: move to the position of the element *before* it
-                current.style.left = prevX + 'px';
-                current.style.top = prevY + 'px';
-                current.style.opacity = '0.8'; // Keep trail visible
+                const current = trailPositions[i];
+                const target = trailPositions[i - 1]; // The target is the position of the element before it
+                const el = trailElements[i];
+
+                // Linear Interpolation (Lerp) for smooth movement
+                current.x += (target.x - current.x) * smoothingFactor;
+                current.y += (target.y - current.y) * smoothingFactor;
+
+                // Apply position to DOM
+                el.style.left = current.x + 'px';
+                el.style.top = current.y + 'px';
+                el.style.opacity = '0.8'; 
             }
             requestAnimationFrame(animateTrail);
         }
