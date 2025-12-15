@@ -32,6 +32,7 @@
             font-family: 'Rajdhani', sans-serif;
             background-color: var(--color-bg);
             color: var(--color-white);
+            cursor: none; /* Hide default cursor for a full-custom experience */
         }
 
         /* =========================================
@@ -216,6 +217,34 @@
             transition: top 0.5s ease-in-out, left 0.5s ease-in-out, opacity 0.3s;
             filter: drop-shadow(0 0 5px var(--color-secondary));
         }
+        
+        /* =========================================
+           5. NEW CURSOR TRAIL STYLES
+           ========================================= */
+        #cursor-trail-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 10000; /* Must be on top */
+            mix-blend-mode: screen; /* Lightens the background */
+        }
+
+        .trail-element {
+            position: absolute;
+            width: 8px; /* Starting size */
+            height: 8px; /* Starting size */
+            background-color: var(--color-primary);
+            border-radius: 50%;
+            opacity: 0;
+            transform: translate(-50%, -50%); /* Center the element on the cursor position */
+            box-shadow: 0 0 5px var(--color-primary), 0 0 10px var(--color-secondary);
+            transition: all 0.3s linear, opacity 0.3s ease-out; /* Smooth transition for visual lag/trail */
+        }
+        /* Color variation for the trail (optional but cool) */
+        .trail-element:nth-child(even) { background-color: var(--color-secondary); }
+        .trail-element:nth-child(3n) { transform: translate(-50%, -50%) scale(0.7); } /* Size variation */
+
 
         /* Animations */
         @keyframes gradient-flow { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
@@ -240,6 +269,18 @@
     <div class="scanlines"></div>
     <div class="vignette"></div>
 
+    <div id="cursor-trail-container">
+        <div class="trail-element"></div>
+        <div class="trail-element"></div>
+        <div class="trail-element"></div>
+        <div class="trail-element"></div>
+        <div class="trail-element"></div>
+        <div class="trail-element"></div>
+        <div class="trail-element"></div>
+        <div class="trail-element"></div>
+        <div class="trail-element"></div>
+        <div class="trail-element"></div>
+    </div>
     <div class="main-container">
         
         <div class="title-wrapper">
@@ -530,6 +571,57 @@
         window.addEventListener('resize', alignArrow);
         // Run once after slight delay to ensure render
         setTimeout(alignArrow, 100);
+
+
+        /* =========================================
+           4. NEW CURSOR TRAIL LOGIC
+           ========================================= */
+        const trailElements = document.querySelectorAll('.trail-element');
+        let mouseX = 0, mouseY = 0;
+        
+        // 1. Initial position setup and tracking
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            // Set the first element immediately to the cursor position
+            trailElements[0].style.opacity = '1';
+            trailElements[0].style.left = mouseX + 'px';
+            trailElements[0].style.top = mouseY + 'px';
+        });
+
+        // 2. Animation loop for the trailing effect
+        function animateTrail() {
+            // Loop through trail elements starting from the second one (index 1)
+            for (let i = 1; i < trailElements.length; i++) {
+                const current = trailElements[i];
+                const prev = trailElements[i - 1];
+                
+                // Get previous element's position
+                const prevRect = prev.getBoundingClientRect();
+                const prevX = prevRect.left + prevRect.width / 2;
+                const prevY = prevRect.top + prevRect.height / 2;
+                
+                // Apply a delayed movement: move to the position of the element *before* it
+                current.style.left = prevX + 'px';
+                current.style.top = prevY + 'px';
+                current.style.opacity = '0.8'; // Keep trail visible
+            }
+            requestAnimationFrame(animateTrail);
+        }
+
+        // 3. Handle mouseout/mouseenter to fade the trail
+        document.addEventListener('mouseenter', () => {
+            trailElements.forEach(el => el.style.opacity = '0.8');
+        });
+        document.addEventListener('mouseleave', () => {
+            trailElements.forEach(el => el.style.opacity = '0');
+        });
+
+        animateTrail(); // Start the trail animation loop
+        /* =========================================
+           END NEW CURSOR TRAIL LOGIC
+           ========================================= */
 
     </script>
 </body>
