@@ -1,10 +1,12 @@
 /* --- Global Reset and Modern Base --- */
 :root {
-    --primary-color: #3f51b5; /* Indigo/Blue for a modern feel */
-    --secondary-color: #00bcd4; /* Cyan/Aqua for the gradient accent */
+    --primary-color: #3f51b5; /* Indigo/Blue */
+    --secondary-color: #00bcd4; /* Cyan/Aqua */
     --text-color-light: #ffffff;
+    /* Gradient Background Restored */
     --background-gradient: linear-gradient(135deg, #1c2a4d 0%, #3f51b5 100%);
-    --aero-shadow: 0 0 15px rgba(0, 188, 212, 0.7), 0 0 30px rgba(63, 81, 181, 0.5); /* Glowing shadow */
+    /* Title Glow Restored */
+    --aero-shadow: 0 0 15px rgba(0, 188, 212, 0.7), 0 0 30px rgba(63, 81, 181, 0.5); 
 }
 
 * {
@@ -17,12 +19,13 @@ body, html {
     height: 100%;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text-color-light);
-    background: var(--background-gradient);
+    /* Apply Gradient Background */
+    background: var(--background-gradient); 
     display: flex;
     justify-content: center;
     align-items: center;
     text-align: center;
-    overflow: hidden; /* Prevent scrollbars due to full-screen alignment */
+    overflow: hidden; 
 }
 
 /* --- Main Content Layout --- */
@@ -32,7 +35,7 @@ body, html {
     width: 100%;
 }
 
-/* --- Aero Studios Title Styling --- */
+/* --- Aero Studios Title Styling (Glow Restored) --- */
 .aero-title {
     font-size: clamp(3rem, 10vw, 6rem);
     font-weight: 900;
@@ -66,30 +69,30 @@ body, html {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 60px; /* Gives space for the text */
+    height: 60px; 
 }
 
 .dynamic-text {
     font-size: clamp(1.5rem, 5vw, 2.5rem);
     font-weight: 300;
-    color: var(--secondary-color); /* Highlight color */
-    white-space: nowrap; /* Prevents text from wrapping */
-    overflow: hidden; /* Crucial for the typing effect's cursor animation in pure CSS, but handled by JS here */
-    border-right: 0.15em solid var(--secondary-color); /* Initial visibility of the cursor */
+    color: var(--secondary-color); 
+    white-space: nowrap; 
+    overflow: hidden;
 }
 
-/* Cursor Blinking Effect */
+/* Cursor Styling (We will control the flashing with JavaScript now) */
 .cursor {
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
     display: inline-block;
     vertical-align: middle;
-    width: 0.1em;
-    height: 1.1em; /* Adjust to match the text height */
-    background-color: var(--secondary-color);
+    color: var(--secondary-color);
+    font-weight: 300;
     margin-left: 5px;
-    animation: blink-caret 0.75s step-end infinite;
+    opacity: 1; /* Default visible */
+    transition: opacity 0.1s ease-in-out; /* Smooth opacity change */
 }
 
-@keyframes blink-caret {
-    from, to { opacity: 0; }
-    50% { opacity: 1; }
+/* The .flashing class will be added/removed by JavaScript */
+.cursor.flashing {
+    opacity: 0;
 }
